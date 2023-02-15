@@ -526,9 +526,6 @@
     (quote)
     (pure-res (ir/literal (first args)))
 
-    (def)
-    (pure-res (ir/inject (resolve-node env (first args))))
-
     ;; TODO
     (js*)
     (if-some [[f & args] args]
@@ -664,7 +661,7 @@
                    `(r/bind r/recover
                       (some-fn
                         ~@(map (fn [[c s & body]]
-                                 (let [f `(partial (def exception) (::closure
+                                 (let [f `(partial (::inject exception) (::closure
                                                                     (let [~s (dbg/unwrap exception)]
                                                                       (binding [hyperfiddle.electric/trace exception]
                                                                         ~@body))
@@ -701,6 +698,9 @@
     (::server)
     (let [[form debug-info] args]
       ((if (::local env) #(toggle %1 %2 {::dbg/meta (source-map env debug-info)}) analyze-form) env form))
+
+    (::inject)
+    (pure-res (ir/inject (resolve-node env (first args))))
 
     (if (symbol? op)
       (let [n (name op)
@@ -1007,13 +1007,13 @@
              ::dbg/scope :dynamic)))))
    (ir/do [] (ir/do [] (ir/do [] ir/nop)))]
 
-  (analyze {} '(def foo)) :=
+  (analyze {} '(::inject foo)) :=
   [(ir/pub (ir/literal nil)
      (ir/bind 0 1
        (ir/inject 0)))
    (ir/do [] (ir/do [] ir/nop))]
 
-  (analyze {} '(let [a 1] (new ((def foo) (::closure ~@(new (::closure ~@foo))) (::closure a)))))
+  (analyze {} '(let [a 1] (new ((::inject foo) (::closure ~@(new (::closure ~@foo))) (::closure a)))))
   :=
   [(ir/pub (ir/literal nil)
      (ir/bind 0 1
@@ -1059,7 +1059,7 @@
                      ir/source] ir/nop))]
 
   (doto (def baz) (alter-meta! assoc :macro true ::node '(::closure ~@foo)))
-  (analyze {} '(let [a 1] (new ((def foo) (::closure ~@(new baz)) (::closure a))))) :=
+  (analyze {} '(let [a 1] (new ((::inject foo) (::closure ~@(new baz)) (::closure a))))) :=
   [(ir/pub (ir/literal nil)
      (ir/bind 0 1
        (ir/do [(ir/target

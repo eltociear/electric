@@ -2,6 +2,7 @@
   "Electric Clojure/Script core language unit tests"
   (:require [contrib.cljs-target :refer [do-browser]]
             [hyperfiddle.electric :as p]
+            [hyperfiddle.electric.impl.compiler :as c]
             [hyperfiddle.electric.impl.io :as electric-io]
             [hyperfiddle.rcf :as rcf :refer [tests tap % with]]
             [missionary.core :as m]
@@ -351,7 +352,7 @@
      ; FIXME cljs throws `Not a reactive var - hyperfiddle.electric-test/bar`
      "internal def"
      (def !a (atom 0))
-     (with (p/run (tap (new ((def bar) (p/fn [] [foo bar]) (m/watch !a)))))
+     (with (p/run (tap (new ((::c/inject bar) (p/fn [] [foo bar]) (m/watch !a)))))
        % := [1 0])))
 
 (tests

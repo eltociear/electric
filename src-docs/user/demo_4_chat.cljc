@@ -14,6 +14,7 @@
     (dom/ul (dom/style {:padding-left "1.5em"})
       (e/server
         (e/for-by identity [msg (reverse (pad 10 nil (e/watch !state)))]
+          (def last-msg msg)
           (e/client
             (dom/li (dom/style {:visibility (if (nil? msg) "hidden" "visible")})
                     (dom/text msg))))))

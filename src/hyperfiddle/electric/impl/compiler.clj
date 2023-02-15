@@ -682,7 +682,9 @@
 
     (def)
     (let [[sym v] args]
-      (analyze-form env `((fn [x#] (def ~sym x#)) ~v)))
+      (if (some->> sym (resolve-var env) is-node)
+        (throw (ex-info "Cannot `def` a reactive var" {:var sym}))
+        (analyze-form env `((fn [x#] (def ~sym x#)) ~v))))
 
     (::lift)
     (map-res ir/lift
@@ -1303,3 +1305,9 @@
 (tests "loop/recur"
   ;; just check if it compiles
   (analyze {} '(loop [x 1] (recur (inc x)))) := _)
+
+(tests "clojure def for electric def is a mistake"
+  (def ^{::node ::unbound, :macro true} wont-work)
+  (try (analyze {} '(def wont-work 12))
+       (catch clojure.lang.ExceptionInfo e
+         (ex-message e) := "Cannot `def` a reactive var")))

@@ -1824,3 +1824,9 @@
       % := 120
       (reset! !n 20)
       % := 2432902008176640000)))
+
+(tests "clojure def inside electric code"
+  (def !x (atom 0))
+  (with (p/run (def --foo (tap (p/watch !x))))
+                    % := 0, --foo := 0
+    (swap! !x inc)  % := 1, --foo := 1))

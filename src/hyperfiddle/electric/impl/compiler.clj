@@ -680,6 +680,10 @@
     (recur)
     (analyze-form env `(new rec ~@args))
 
+    (def)
+    (let [[sym v] args]
+      (analyze-form env `((fn [x#] (def ~sym x#)) ~v)))
+
     (::lift)
     (map-res ir/lift
       (analyze-form env (first args)))
